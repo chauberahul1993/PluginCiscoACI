@@ -186,6 +186,7 @@ func app() {
 		case <-ch:
 			println("shutdown...")
 			log.Info("Shut Down *****************************  ")
+			publishFabricRemovedEvent()
 			timeout := 10 * time.Second
 			ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
 			defer cancel()
@@ -193,7 +194,10 @@ func app() {
 			close(idleConnsClosed)
 		}
 	}()
-	app.Run(iris.Server(pluginServer))
+	err = app.Run(iris.Server(pluginServer))
+	if err != nil {
+		log.Error("Server error occured ****** ", err)
+	}
 	<-idleConnsClosed
 }
 
