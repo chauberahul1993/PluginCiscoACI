@@ -20,8 +20,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	dmtfmodel "github.com/ODIM-Project/ODIM/lib-dmtf/model"
@@ -35,6 +37,7 @@ import (
 	"github.com/ODIM-Project/PluginCiscoACI/capmodel"
 	"github.com/ODIM-Project/PluginCiscoACI/caputilities"
 	"github.com/ODIM-Project/PluginCiscoACI/config"
+	"github.com/ODIM-Project/PluginCiscoACI/constants"
 	"github.com/ODIM-Project/PluginCiscoACI/db"
 
 	"github.com/ciscoecosystem/aci-go-client/models"
@@ -89,7 +92,63 @@ func main() {
 
 	intializePluginStatus()
 
+	intiateSignalHandler()
 	app()
+}
+
+func intiateSignalHandler() {
+	fmt.Println("Monitor Go routine Added ")
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs,
+		os.Interrupt,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+		syscall.SIGHUP)
+	go func() {
+		sig := <-sigs
+		log.Info("Plugin Terminate Time :", caputilities.PluginStartTime.Format(time.RFC3339))
+		f, err := os.Create("/var/tmp/data111")
+		if err != nil {
+			panic(err)
+		}
+		now := time.Now()
+
+		fmt.Fprintln(f, sig, now)
+
+		fmt.Println("Plugin Stop ", sig)
+		publishFabricRemovedEvent()
+	}()
+
+}
+func publishFabricRemovedEvent() {
+	fmt.Println("Sending Remove Event ")
+	allFabric, err := capmodel.GetAllFabric("")
+	if err != nil {
+		log.Fatal("while fetching all stored fabric data got: " + err.Error())
+	}
+	for fabricID := range allFabric {
+		var event = common.Event{
+			EventID:   uuid.NewV4().String(),
+			MessageID: constants.ResourceCreatedMessageID,
+			EventType: "ResourceRemoved",
+			OriginOfCondition: &common.Link{
+				Oid: "/ODIM/v1/Fabrics/" + fabricID,
+			},
+		}
+		var events = []common.Event{event}
+		var messageData = common.MessageData{
+			Name:      "Fabric added event",
+			Context:   "/redfish/v1/$metadata#Event.Event",
+			OdataType: constants.EventODataType,
+			Events:    events,
+		}
+		data, _ := json.Marshal(messageData)
+		eventData := common.Events{
+			IP:      config.Data.LoadBalancerConf.Host,
+			Request: data,
+		}
+		capmessagebus.Publish(eventData)
+	}
 }
 
 func app() {
