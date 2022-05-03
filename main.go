@@ -40,6 +40,8 @@ import (
 	"github.com/ODIM-Project/PluginCiscoACI/constants"
 	"github.com/ODIM-Project/PluginCiscoACI/db"
 
+	stdContext "context"
+
 	"github.com/ciscoecosystem/aci-go-client/models"
 	iris "github.com/kataras/iris/v12"
 	uuid "github.com/satori/go.uuid"
@@ -92,12 +94,13 @@ func main() {
 
 	intializePluginStatus()
 
-	intiateSignalHandler()
+	// intiateSignalHandler()
 	app()
+
 }
 
 func intiateSignalHandler() {
-	fmt.Println("Monitor Go routine Added ")
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs,
 		os.Interrupt,
@@ -112,9 +115,7 @@ func intiateSignalHandler() {
 			panic(err)
 		}
 		now := time.Now()
-
 		fmt.Fprintln(f, sig, now)
-
 		fmt.Println("Plugin Stop ", sig)
 		publishFabricRemovedEvent()
 	}()
@@ -167,7 +168,33 @@ func app() {
 	if err != nil {
 		log.Fatal("while initializing plugin server, PluginCiscoACI got: " + err.Error())
 	}
+	idleConnsClosed := make(chan struct{})
+	go func() {
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch,
+			// kill -SIGINT XXXX or Ctrl+c
+			os.Interrupt,
+			syscall.SIGINT, // register that too, it should be ok
+			// os.Kill  is equivalent with the syscall.Kill
+			os.Kill,
+			syscall.SIGKILL, // register that too, it should be ok
+			// kill -SIGTERM XXXX
+			syscall.SIGTERM,
+			syscall.SIGHUP,
+		)
+		select {
+		case <-ch:
+			println("shutdown...")
+			log.Info("Shut Down *****************************  ")
+			timeout := 10 * time.Second
+			ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
+			defer cancel()
+			app.Shutdown(ctx)
+			close(idleConnsClosed)
+		}
+	}()
 	app.Run(iris.Server(pluginServer))
+	<-idleConnsClosed
 }
 
 func routers() *iris.Application {
