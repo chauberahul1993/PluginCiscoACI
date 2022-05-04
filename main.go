@@ -58,6 +58,7 @@ type TokenObject struct {
 }
 
 func main() {
+	fmt.Println("Plogin is started ***************  ")
 	// intializing the plugin start time
 	caputilities.PluginStartTime = time.Now()
 	log.Info("Plugin Start time:", caputilities.PluginStartTime.Format(time.RFC3339))
@@ -153,6 +154,7 @@ func publishFabricRemovedEvent() {
 }
 
 func app() {
+	fmt.Println("App Server is called  ***************  ")
 	app := routers()
 	go func() {
 		eventsrouters()
@@ -170,6 +172,9 @@ func app() {
 	}
 	idleConnsClosed := make(chan struct{})
 	go func() {
+		fmt.Println("Go Routing Monitor Started ***************  ")
+		log.Info("Started  *****************************  ")
+
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch,
 			// kill -SIGINT XXXX or Ctrl+c
@@ -184,7 +189,7 @@ func app() {
 		)
 		select {
 		case <-ch:
-			println("shutdown...")
+			fmt.Println("Shut Down Event occured ")
 			log.Info("Shut Down *****************************  ")
 			publishFabricRemovedEvent()
 			timeout := 10 * time.Second
