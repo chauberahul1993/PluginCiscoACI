@@ -40,8 +40,6 @@ import (
 	"github.com/ODIM-Project/PluginCiscoACI/constants"
 	"github.com/ODIM-Project/PluginCiscoACI/db"
 
-	stdContext "context"
-
 	"github.com/ciscoecosystem/aci-go-client/models"
 	iris "github.com/kataras/iris/v12"
 	uuid "github.com/satori/go.uuid"
@@ -181,19 +179,19 @@ func app() {
 		}
 	}()
 	go func() {
-		c := make(chan os.Signal, 1)
+		c := make(chan os.Signal)
 		// signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
 		// Received ALl Signal
 		signal.Notify(c)
 		sig := <-c
 		fmt.Println("Termination Signal Received Plugin ", sig)
-		timeout := 30 * time.Second
-		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
-		defer cancel()
-		app.Shutdown(ctx)
+		// timeout := 30 * time.Second
+		// ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
+		// defer cancel()
+		// app.Shutdown(ctx)
 
-		err := app.Shutdown(ctx)
-		errs <- fmt.Errorf("Singal: %s, Shutdown Err: %v", sig, err)
+		// err := app.Shutdown(ctx)
+		// errs <- fmt.Errorf("Singal: %s, Shutdown Err: %v", sig, err)
 	}()
 
 	log.Println("Plugin Server is terminated ", <-errs)
@@ -288,19 +286,19 @@ func eventsrouters() {
 		}
 	}()
 	go func() {
-		c := make(chan os.Signal, 1)
+		c := make(chan os.Signal)
 		// Received ALl Signal
 		signal.Notify(c)
 
 		sig := <-c
 		fmt.Println("Termination Signal Received Plugin 1111 ******* ", sig)
-		timeout := 30 * time.Second
-		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
-		defer cancel()
-		app.Shutdown(ctx)
+		// timeout := 30 * time.Second
+		// ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
+		// defer cancel()
+		// app.Shutdown(ctx)
 
-		err := app.Shutdown(ctx)
-		errs <- fmt.Errorf("Singal: %s, Shutdown Err: %v", sig, err)
+		// err := app.Shutdown(ctx)
+		// errs <- fmt.Errorf("Singal: %s, Shutdown Err: %v", sig, err)
 	}()
 
 	log.Println("Event Server is terminated ", <-errs)
