@@ -105,17 +105,12 @@ func intiateSignalHandler() {
 		os.Interrupt,
 		syscall.SIGTERM,
 		syscall.SIGQUIT,
-		syscall.SIGHUP)
+		syscall.SIGKILL,
+	)
 	go func() {
+		fmt.Println("Step p *********************** ")
 		sig := <-sigs
-		log.Info("Plugin Terminate Time :", caputilities.PluginStartTime.Format(time.RFC3339))
-		f, err := os.Create("/var/tmp/data111")
-		if err != nil {
-			panic(err)
-		}
-		now := time.Now()
-		fmt.Fprintln(f, sig, now)
-		fmt.Println("Plugin Stop ", sig)
+
 		publishFabricRemovedEvent()
 	}()
 
@@ -179,12 +174,19 @@ func app() {
 		}
 	}()
 	go func() {
+		fmt.Println("Monitoring is started ")
 		c := make(chan os.Signal)
-		// signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
+		//signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
 		// Received ALl Signal
 		signal.Notify(c)
-		sig := <-c
-		fmt.Println("Termination Signal Received Plugin ", sig)
+		// sig := <-c
+
+		for {
+			v, ok := <-c
+			fmt.Println("Signal receved are  Value and status *************  ", v, ok)
+
+		}
+		// fmt.Println("Termination Signal Received Plugin ", sig)
 		// timeout := 30 * time.Second
 		// ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
 		// defer cancel()
