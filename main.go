@@ -110,7 +110,7 @@ func intiateSignalHandler() {
 	go func() {
 		fmt.Println("Step p *********************** ")
 		sig := <-sigs
-
+		fmt.Println("Signal reveived ", sig)
 		publishFabricRemovedEvent()
 	}()
 
