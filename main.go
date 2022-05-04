@@ -170,40 +170,40 @@ func app() {
 	if err != nil {
 		log.Fatal("while initializing plugin server, PluginCiscoACI got: " + err.Error())
 	}
-	idleConnsClosed := make(chan struct{})
+	errs := make(chan error)
 	go func() {
-		fmt.Println("Go Routing Monitor Started ***************  ")
-		log.Info("Started  *****************************  ")
-
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch,
-			// kill -SIGINT XXXX or Ctrl+c
-			os.Interrupt,
-			syscall.SIGINT, // register that too, it should be ok
-			// os.Kill  is equivalent with the syscall.Kill
-			os.Kill,
-			syscall.SIGKILL, // register that too, it should be ok
-			// kill -SIGTERM XXXX
-			syscall.SIGTERM,
-			syscall.SIGHUP,
-		)
-		select {
-		case <-ch:
-			fmt.Println("Shut Down Event occured ")
-			log.Info("Shut Down *****************************  ")
-			publishFabricRemovedEvent()
-			timeout := 10 * time.Second
-			ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
-			defer cancel()
-			app.Shutdown(ctx)
-			close(idleConnsClosed)
+		fmt.Println("Plugin Server is started ***********  ")
+		err := app.Run(iris.Server(pluginServer), iris.WithoutInterruptHandler)
+		switch err {
+		case http.ErrServerClosed:
+		default:
+			errs <- err
 		}
 	}()
-	err = app.Run(iris.Server(pluginServer))
-	if err != nil {
-		log.Error("Server error occured ****** ", err)
-	}
-	<-idleConnsClosed
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
+		sig := <-c
+		fmt.Println("Termination Signal Received Plugin ", sig)
+		timeout := 30 * time.Second
+		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
+		defer cancel()
+		app.Shutdown(ctx)
+
+		err := app.Shutdown(ctx)
+		errs <- fmt.Errorf("Singal: %s, Shutdown Err: %v", sig, err)
+	}()
+
+	log.Println("Plugin Server is terminated ", <-errs)
+	// go func() {
+	// 	err = app.Run(iris.Server(pluginServer), iris.WithoutInterruptHandler)
+	// 	if err != nil {
+	// 		log.Error("Server error occured ****** ", err)
+	// 		close(idleConnsClosed)
+	// 	}
+	// }()
+
+	// <-idleConnsClosed
 }
 
 func routers() *iris.Application {
@@ -269,6 +269,7 @@ func routers() *iris.Application {
 }
 
 func eventsrouters() {
+	fmt.Println("Event Server is started *****************  ")
 	app := iris.New()
 	app.Post(config.Data.EventConf.DestURI, caphandler.RedfishEvents)
 	conf := &lutilconf.HTTPConfig{
@@ -282,7 +283,31 @@ func eventsrouters() {
 	if err != nil {
 		log.Fatal("while initializing event server, PluginCiscoACI got: " + err.Error())
 	}
-	app.Run(iris.Server(evtServer))
+	errs := make(chan error)
+	go func() {
+		fmt.Println("Event Server is started 1111 ***********  ")
+		err := app.Run(iris.Server(evtServer), iris.WithoutInterruptHandler)
+		switch err {
+		case http.ErrServerClosed:
+		default:
+			errs <- err
+		}
+	}()
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
+		sig := <-c
+		fmt.Println("Termination Signal Received Plugin 1111 ******* ", sig)
+		timeout := 30 * time.Second
+		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), timeout)
+		defer cancel()
+		app.Shutdown(ctx)
+
+		err := app.Shutdown(ctx)
+		errs <- fmt.Errorf("Singal: %s, Shutdown Err: %v", sig, err)
+	}()
+
+	log.Println("Event Server is terminated ", <-errs)
 }
 
 // intializePluginStatus sets plugin status
