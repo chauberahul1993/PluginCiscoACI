@@ -181,7 +181,7 @@ func app() {
 		}
 	}()
 	go func() {
-		c := make(chan os.Signal)
+		c := make(chan os.Signal, 1)
 		// signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
 		// Received ALl Signal
 		signal.Notify(c)
@@ -288,7 +288,7 @@ func eventsrouters() {
 		}
 	}()
 	go func() {
-		c := make(chan os.Signal)
+		c := make(chan os.Signal, 1)
 		// Received ALl Signal
 		signal.Notify(c)
 
