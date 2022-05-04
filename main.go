@@ -181,8 +181,10 @@ func app() {
 		}
 	}()
 	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
+		c := make(chan os.Signal)
+		// signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
+		// Received ALl Signal
+		signal.Notify(c)
 		sig := <-c
 		fmt.Println("Termination Signal Received Plugin ", sig)
 		timeout := 30 * time.Second
@@ -195,15 +197,7 @@ func app() {
 	}()
 
 	log.Println("Plugin Server is terminated ", <-errs)
-	// go func() {
-	// 	err = app.Run(iris.Server(pluginServer), iris.WithoutInterruptHandler)
-	// 	if err != nil {
-	// 		log.Error("Server error occured ****** ", err)
-	// 		close(idleConnsClosed)
-	// 	}
-	// }()
 
-	// <-idleConnsClosed
 }
 
 func routers() *iris.Application {
@@ -294,8 +288,10 @@ func eventsrouters() {
 		}
 	}()
 	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
+		c := make(chan os.Signal)
+		// Received ALl Signal
+		signal.Notify(c)
+
 		sig := <-c
 		fmt.Println("Termination Signal Received Plugin 1111 ******* ", sig)
 		timeout := 30 * time.Second
