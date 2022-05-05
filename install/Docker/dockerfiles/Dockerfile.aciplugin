@@ -56,6 +56,6 @@ COPY install/Docker/dockerfiles/scripts/start_aciplugin.sh /bin/
 COPY --from=build-stage aciplugin/PluginCiscoACI /bin/
 COPY --chown=root:odimra --from=build-stage /aciplugin/add-hosts /bin/
 RUN chmod 4550 /bin/add-hosts
-USER odimra:odimra
 ENTRYPOINT ["/bin/start_aciplugin.sh","/usr/local/bin/dumb-init","--rewrite","15:10","--"]
 CMD ["/entrypoint.sh"]
+USER odimra:odimra
