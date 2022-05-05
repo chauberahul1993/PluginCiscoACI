@@ -187,6 +187,7 @@ func app() {
 			v, ok := <-c
 			fmt.Println(" Plugin Signal recieved  *************  ", v, ok)
 
+			publishFabricRemovedEvent()
 			if v == syscall.SIGINT || v == syscall.SIGTERM || v == syscall.SIGHUP {
 				errs <- fmt.Errorf("Termination  Singal: %s, Shutdown Err: %v", v, err)
 			}
