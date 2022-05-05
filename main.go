@@ -56,7 +56,7 @@ type TokenObject struct {
 }
 
 func main() {
-	fmt.Println("Plogin is started ***************  ")
+	fmt.Println("Plugin is started ***************  ")
 	// intializing the plugin start time
 	caputilities.PluginStartTime = time.Now()
 	log.Info("Plugin Start time:", caputilities.PluginStartTime.Format(time.RFC3339))
@@ -176,7 +176,7 @@ func app() {
 		}
 	}()
 	go func() {
-		fmt.Println("Plugin Monitoring is started ")
+		fmt.Println("Plugin Monitoring is started *********  ")
 		c := make(chan os.Signal)
 		//signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
 		// Received ALl Signal
@@ -185,7 +185,11 @@ func app() {
 
 		for {
 			v, ok := <-c
-			fmt.Println("Signal receved are  Value and status *************  ", v, ok)
+			fmt.Println(" Plugin Signal recieved  *************  ", v, ok)
+
+			if v == syscall.SIGINT || v == syscall.SIGTERM || v == syscall.SIGHUP {
+				errs <- fmt.Errorf("Termination  Singal: %s, Shutdown Err: %v", v, err)
+			}
 
 		}
 		// fmt.Println("Termination Signal Received Plugin ", sig)
@@ -296,7 +300,11 @@ func eventsrouters() {
 
 		for {
 			v, ok := <-c
-			fmt.Println("Signal receved are  1111111111111   *************  ", v, ok)
+			fmt.Println("Event Signal received *************  ", v, ok)
+
+			if v == syscall.SIGINT || v == syscall.SIGTERM || v == syscall.SIGHUP {
+				errs <- fmt.Errorf("Event  Termination  Singal: %s, Shutdown Err: %v", v, err)
+			}
 
 		}
 		// sig := <-c
