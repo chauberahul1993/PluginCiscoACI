@@ -55,7 +55,7 @@ RUN if [ -z "$ODIMRA_USER_ID" ] || [ -z "$ODIMRA_GROUP_ID" ]; then echo "\n[$(da
 COPY install/Docker/dockerfiles/scripts/start_aciplugin.sh /bin/
 COPY --from=build-stage aciplugin/PluginCiscoACI /bin/
 COPY --chown=root:odimra --from=build-stage /aciplugin/add-hosts /bin/
-ENTRYPOINT ["/bin/start_aciplugin.sh","/usr/local/bin/dumb-init","--rewrite","15:10","--"]
-CMD ["/entrypoint.sh"]
 RUN chmod 4550 /bin/add-hosts
 USER odimra:odimra
+ENTRYPOINT ["/bin/start_aciplugin.sh","/usr/local/bin/dumb-init","--rewrite","15:10","--"]
+CMD ["/entrypoint.sh"]
