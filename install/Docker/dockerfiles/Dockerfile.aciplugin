@@ -35,6 +35,17 @@ ADD config /aciplugin/config
 RUN go build -i .
 COPY install/Docker/dockerfiles/scripts/add-hosts .
 RUN go build -o add-hosts add-hosts.go
+COPY build/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+RUN apt-get install  bash -y
+
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
+RUN chmod +x /usr/local/bin/dumb-init
+
+ENTRYPOINT ["/usr/local/bin/dumb-init","--rewrite","15:10","--"]
+
+CMD ["/entrypoint.sh"]
+
 
 FROM ubuntu:20.04
 
