@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
   aci_plugin:
@@ -31,5 +31,3 @@ services:
       - '/etc/plugincert/odimra_kafka_client.crt:/etc/plugin_certs/odimra_kafka_client.crt:ro'
       - '../build/plugin.service:/etc/systemd/system/plugin.service:rw'
     command: bash -c "cp -r /var/plugin_config/ /etc/ && rm -rf /var/plugin_config/* && /aci-plugin/start_plugin.sh"
-    terminationGracePeriodSeconds: 60
-
