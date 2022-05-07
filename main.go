@@ -176,7 +176,7 @@ func app() {
 		}
 	}()
 	go func() {
-		fmt.Println("Plugin Monitoring is started ########### *********  ")
+		fmt.Println("Plugin Monitoring is started ######## *********  ")
 		c := make(chan os.Signal)
 		//signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGHUP)
 		// Received ALl Signal
