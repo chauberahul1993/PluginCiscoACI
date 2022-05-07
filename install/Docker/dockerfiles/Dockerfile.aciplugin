@@ -51,5 +51,6 @@ COPY --from=build-stage aciplugin/PluginCiscoACI /bin/
 COPY --chown=root:odimra --from=build-stage /aciplugin/add-hosts /bin/
 RUN chmod 4550 /bin/add-hosts
 COPY install/Docker/dockerfiles/scripts/dumb-init /bin/
+RUN chmod 4550 /bin/dumb-init
 USER odimra:odimra
 ENTRYPOINT ["/bin/start_aciplugin.sh","/bin/dumb-init","--rewrite","15:10","--"]
