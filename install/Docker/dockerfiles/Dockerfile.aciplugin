@@ -36,8 +36,6 @@ RUN go build -i .
 COPY install/Docker/dockerfiles/scripts/add-hosts .
 RUN go build -o add-hosts add-hosts.go
 
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
-RUN chmod +x /usr/local/bin/dumb-init
 
 FROM ubuntu:20.04
 
@@ -52,5 +50,8 @@ COPY install/Docker/dockerfiles/scripts/start_aciplugin.sh /bin/
 COPY --from=build-stage aciplugin/PluginCiscoACI /bin/
 COPY --chown=root:odimra --from=build-stage /aciplugin/add-hosts /bin/
 RUN chmod 4550 /bin/add-hosts
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
+RUN chmod +x /usr/local/bin/dumb-init
+COPY /usr/local/bin/dumb-init /bin/
 USER odimra:odimra
 ENTRYPOINT ["/bin/start_aciplugin.sh","/usr/local/bin/dumb-init","--rewrite","15:10","--"]
