@@ -50,7 +50,7 @@ COPY install/Docker/dockerfiles/scripts/start_aciplugin.sh /bin/
 COPY --from=build-stage aciplugin/PluginCiscoACI /bin/
 COPY --chown=root:odimra --from=build-stage /aciplugin/add-hosts /bin/
 RUN chmod 4550 /bin/add-hosts
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
+RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64
 RUN chmod +x /usr/local/bin/dumb-init
 COPY /usr/local/bin/dumb-init /bin/
 USER odimra:odimra
